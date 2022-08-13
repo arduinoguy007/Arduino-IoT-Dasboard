@@ -1,0 +1,426 @@
+<!--            --------------------------------------------------------------
+  Program:      Sensors / Actuators & Data Visualization with Microcontrollers
+  Description:  This html code works in conjunction with the Arduino Uno C++ code 
+                to display a dashboard containing analalog Canvas-Gauge dials and  
+                interactive toggle switches which control actuators. 
+                The web page, along with minimal assets are stored on the MCU's SD card. 
+                Ajax is used to update the analog values of both the Gauges and the 
+                toggle switches associated with the webpage.
+  Author:       Richard Inniss, https://aiotconsulting.com
+-->
+
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Sensors/Actuators/Visualization</title>
+		<script src="https://cdn.jsdelivr.net/npm/canvas-gauges"></script>
+        <script>
+            
+			var dataValOne = 0;
+			var dataValTwo = 0;
+            var dataValThree = 0;
+            var dataValFour = 0;
+			var dataValFive = 0;
+			strSW1 = "";
+		    strSW2 = "";
+		    strSW3 = "";
+		    strSW4 = "";
+            function GetArduinoInputs()
+            {
+                nocache = "&nocache=" + Math.random() * 1000000;
+                var request = new XMLHttpRequest();
+                request.onreadystatechange = function()
+                {
+                    if (this.readyState == 4) {
+                        if (this.status == 200) {
+                            if (this.responseXML != null) {
+                                
+								<!-- gauge values -->
+                            	dataValOne = this.responseXML.getElementsByTagName('analog')[0].childNodes[0].nodeValue;
+								dataValTwo = this.responseXML.getElementsByTagName('analog')[1].childNodes[0].nodeValue;
+								dataValThree = this.responseXML.getElementsByTagName('analog')[2].childNodes[0].nodeValue;
+                                dataValFour = this.responseXML.getElementsByTagName('analog')[3].childNodes[0].nodeValue;
+								dataValFive = this.responseXML.getElementsByTagName('analog')[4].childNodes[0].nodeValue;
+								<!-- switch values -->
+                                // SWITCH 1
+							    if (this.responseXML.getElementsByTagName('SW')[0].childNodes[0].nodeValue === "checked") {
+								    document.SW_form.SW1.checked = true;
+							    }
+							    else {
+								    document.SW_form.SW1.checked = false;
+							    }
+							    // SWITCH 2
+							    if (this.responseXML.getElementsByTagName('SW')[1].childNodes[0].nodeValue === "checked") {
+								    document.SW_form.SW2.checked = true;
+							    }
+							    else {
+								    document.SW_form.SW2.checked = false;
+							    }
+							    // SWITCH 3
+							    if (this.responseXML.getElementsByTagName('SW')[2].childNodes[0].nodeValue === "checked") {
+								    document.SW_form.SW3.checked = true;
+							    }
+							    else {
+								    document.SW_form.SW3.checked = false;
+							    }
+							    // SWITCH 4
+							    if (this.responseXML.getElementsByTagName('SW')[3].childNodes[0].nodeValue === "checked") {
+								    document.SW_form.SW4.checked = true;
+							    }
+							    else {
+								    document.SW_form.SW4.checked = false;
+							    }
+                            }
+                        }
+                    }
+                }
+                request.open("GET", "ajax_inputs" + strSW1 + strSW2 + strSW3 + strSW4 + nocache, true);
+                request.send(null);
+                setTimeout('GetArduinoInputs()', 1000);
+                strSW1 = "";
+			    strSW2 = "";
+			    strSW3 = "";
+			    strSW4 = "";
+            }
+            // service SWITCHES when toggles checked/unchecked
+	        function SwitchCheck()
+	        {
+			    if (SW_form.SW1.checked) {
+				    strSW1 = "&SW1=1";
+			    }
+			    else {
+				    strSW1 = "&SW1=0";
+			    }
+			    if (SW_form.SW2.checked) {
+				    strSW2 = "&SW2=1";
+			    }
+			    else {
+				    strSW2 = "&SW2=0";
+			    }
+			    if (SW_form.SW3.checked) {
+				    strSW3 = "&SW3=1";
+			    }
+			    else {
+				    strSW3 = "&SW3=0";
+			    }
+			    if (SW_form.SW4.checked) {
+				    strSW4 = "&SW4=1";
+			    }
+			    else {
+				    strSW4 = "&SW4=0";
+			    }
+	        }
+        </script>
+    	<style>
+            html,
+    		body {
+        		width: 100%;
+        		height: 100%;
+        		background-color: black;
+        		display: table-cell;
+        		vertical-align: middle;
+				}
+    		html {
+        		display: table;
+    			}
+			h1 {
+	            font-family: arial, verdana, sans-serif;
+	            text-align:center;
+	            color:white;
+	            font-size:18px;
+	            letter-spacing:1px;
+	            }
+            h3 {
+	            font-family: arial, verdana, sans-serif;
+	            text-align:center;
+	            color:white;
+	            font-size:40px;
+	            text-transform: uppercase;
+	            letter-spacing:3px;
+	            }
+            td {
+	            color:white;
+                border: 0px solid white;
+	            white-space: nowrap;
+	            vertical-align: bottom;
+	            }
+			#table_G1{
+				table-layout: auto;
+				width: 70%;
+				height: 200px;
+				border: 0px solid white;
+				text-align:center;
+				}
+			#table_G2{
+        		table-layout: auto;
+        		width: 50%;
+        		height: auto;
+        		border: 0px solid white;
+				text-align:center;
+        		}
+			#table_S{
+        		table-layout: auto;
+        		width: 45%;
+        		height: 100px;
+        		border: 0px solid white;
+				text-align:center;
+        		}
+			input[type="checkbox"] {
+        		margin: 10px;
+        		position:relative;
+        		vertical-align: bottom;
+        		margin-top:2em;
+           		width:96px;
+        		height:32px;
+        		-webkit-appearance: none;
+        		background: linear-gradient(0deg, #333, #000);
+        		opacity: 0.8;
+        		outline: none;
+        		border-radius: 16px;
+        		box-shadow: 0 0 0 4px #353535, 0 0 0 5px #3e3e3e, inset 0 0 10px rgba(0,0,0,1);
+        		}
+			input[type="checkbox"]:before {
+        		content:'';
+        		position:absolute;
+        		top:0;
+        		left:0;
+        		width:64px;
+        		height:32px;
+        		background: linear-gradient(0deg, #000, #6b6b6b);
+        		border-radius: 16px;
+        		box-shadow: 0 0 0 1px #232323;
+        		transform: scale(.98,.96);
+        		transition:.5s;
+        		}
+			input:checked[type="checkbox"]:before {
+        		left:32px;
+        		}
+			input:checked[type="checkbox"]:after {
+        		left:88px;
+        		}
+			input:checked[type="checkbox"]:nth-of-type(1) {
+        		background: linear-gradient(0deg, #70a1ff, #1e90ff);
+        		box-shadow: 0 0 0 4px #353535, 0 0 0 5px #3e3e3e, inset 0 0 10px rgba(0,0,0,1);
+        		}
+			input:hover {
+      			opacity: 1;
+    			}
+        </style>
+    </head>
+
+    <div id="body">
+    <body onload="GetArduinoInputs()">
+		<center>	
+		<table id="table_G1">
+            <tr>
+				<!-- Voltage Gauge -->
+                <td align="center"><canvas id="gauge_1" 
+					data-type="radial-gauge"
+					data-width="180"
+					data-height="180"
+					data-title="DC"
+					data-units="Volts"
+					data-value="15"
+					data-value-Int="2"
+					data-value-Dec="1"
+					data-animate-on-init="true"
+					data-animated-value="true"
+					data-min-value="0"
+					data-max-value="15"
+					data-major-ticks="0,5,10,15"
+					data-minor-ticks="5"
+					data-highlights='[
+						{ "from": 0, "to": 13.2, "color": "rgb(192,192,192,.75)" },
+						{ "from": 13.2, "to": 15, "color": "rgb(220, 50, 50,.75)" }                        
+						]'
+					data-color-needle-start="rgba(240, 128, 128, 1)"
+					data-color-needle-end="rgba(255, 160, 122, .9)"
+					data-value-box="true"
+					data-animation-rule="linear"
+					data-animation-duration="500"
+					data-border-outer-width="8"
+					data-border-middle-width="5"
+					data-border-inner-width="3">
+                    </canvas>
+                </td>
+			    <!-- Temperature Gauge -->     
+        	    <td align="center"><canvas id="gauge_2"
+					data-type="radial-gauge"
+                    data-width="330"
+                    data-height="330"
+                    data-units="&#8451"
+                    data-title="Temperature"
+                    data-value="120"
+                    data-value-Int="1"
+                    data-value-Dec="0"
+                    data-animate-on-init="true"
+                    data-animated-value="true"
+                    data-min-value="-40"
+                    data-max-value="120"
+                    data-major-ticks="-40,-30,-20,-10,0,10,20,30,40,50,60,70,80,90,100,110,120"
+                    data-minor-ticks="10"
+                    data-highlights='[
+                    { "from": -40, "to": 0, "color": "rgba(100,150,250,.75)" },
+                    { "from": 0, "to": 40, "color": "rgba(44, 201, 55,.75)" },
+                    { "from": 40, "to": 60, "color": "rgba(255, 255, 50,.75)" },
+					{ "from": 60, "to": 120, "color": "rgba(220, 50, 50,.75)" }                     
+                    ]'
+                    data-color-needle-start="rgba(240, 128, 128, 1)"
+                    data-color-needle-end="rgba(255, 160, 122, .9)"
+                    data-value-box="true"
+                    data-animation-rule="linear"
+                    data-animation-duration="500"
+                    data-border-outer-width="8"
+                    data-border-middle-width="5"
+                    data-border-inner-width="3">
+                     </canvas>
+                </td>
+			    <!-- RPM Gauge -->
+                <td align="center"><canvas id="gauge_3" 
+                    data-type="radial-gauge"
+                    data-width="330"
+                    data-height="330"
+                    data-title="RPM"
+                    data-value="12000"
+                    data-value-Int="1"
+                    data-value-Dec="0"
+                    data-animate-on-init="true"
+                    data-animated-value="true"
+                    data-min-value="0"
+                    data-max-value="12000"
+                    data-major-ticks="0,2000,4000,6000,8000,10000,12000"
+                    data-minor-ticks="10"
+                    data-highlights='[
+                    { "from": 0, "to": 10000, "color": "rgba(192,192,192,.75)" },
+                    { "from": 10000, "to": 12000, "color": "rgba(220, 50, 50,.75)" }                        
+                    ]'
+                    data-color-needle-start="rgba(240, 128, 128, 1)"
+                    data-color-needle-end="rgba(255, 160, 122, .9)"
+                    data-value-box="true"
+                    data-animation-rule="linear"
+                    data-animation-duration="500"
+                    data-border-outer-width="8"
+                    data-border-middle-width="5"
+                    data-border-inner-width="3">
+                    </canvas>
+                </td>
+			    <!-- Distance Gauge -->
+                <td align="center"><canvas id="gauge_4" 
+					data-type="radial-gauge"
+					data-width="180"
+					data-height="180"
+					data-title="Distance"
+					data-units="CM"
+					data-value="100"
+					data-value-Int="2"
+					data-value-Dec="0"
+					data-animate-on-init="true"
+					data-animated-value="true"
+					data-min-value="0"
+					data-max-value="100"
+					data-major-ticks="0,20,40,60,80,100"
+					data-minor-ticks="10"
+					data-highlights='[
+						{ "from": 20, "to": 100, "color": "rgb(192,192,192,.75)" },
+						{ "from": 10, "to": 20, "color": "rgb(255, 255, 50,.75)" },
+                        { "from": 0, "to": 10, "color": "rgb(220, 50, 50,.75)" }                       
+						]'
+					data-color-needle-start="rgba(240, 128, 128, 1)"
+					data-color-needle-end="rgba(255, 160, 122, .9)"
+					data-value-box="true"
+					data-animation-rule="linear"
+					data-animation-duration="500"
+					data-border-outer-width="8"
+					data-border-middle-width="5"
+					data-border-inner-width="3">
+                    </canvas>
+                </td>
+			</tr>
+		</table>
+		<table id="table_G2">
+            <tr>
+				<!-- Aux Gauge 1 -->
+                <td align="center"><canvas id="gauge_5" 
+					data-type="radial-gauge"
+					data-width="180"
+					data-height="180"
+					data-title="Aux 1"
+					data-value="1023"
+					data-animate-on-init="true"
+					data-animated-value="true"
+					data-min-value="0"
+					data-max-value="1023"
+					data-major-ticks="0,100,200,300,400,500,600,700,800,900,1000,1023"
+					data-minor-ticks="5"
+					data-color-needle-start="rgba(240, 128, 128, 1)"
+					data-color-needle-end="rgba(255, 160, 122, .9)"
+					data-value-box="false"
+					data-animation-rule="linear"
+					data-animation-duration="500"
+					data-border-outer-width="8"
+					data-border-middle-width="5"
+					data-border-inner-width="3">
+                    </canvas>
+                </td>
+			    <td width="400" style="vertical-align:middle;margin:0px 0px">
+			        <center>
+                    <h1>Sensors/Actuators<BR>Data Visualization<br>Micro-Controllers</h1>
+                    <h3>DASHBOARD</h3>
+                    </center>
+			    </td>
+			    <!-- Aux Gauge 2 -->
+                <td align="center"><canvas id="gauge_6" 
+					data-type="radial-gauge"
+					data-width="180"
+					data-height="180"
+					data-title="Aux 2"
+					data-value="1023"
+					data-animate-on-init="true"
+					data-animated-value="true"
+					data-min-value="0"
+					data-max-value="1023"
+					data-major-ticks="0,100,200,300,400,500,600,700,800,900,1000,1023"
+					data-minor-ticks="5"
+					data-color-needle-start="rgba(240, 128, 128, 1)"
+					data-color-needle-end="rgba(255, 160, 122, .9)"
+					data-value-box="false"
+					data-animation-rule="linear"
+					data-animation-duration="500"
+					data-border-outer-width="8"
+					data-border-middle-width="5"
+					data-border-inner-width="3">
+                    </canvas>
+                </td>
+			</tr>
+		</table>
+        <table id="table_S">
+			<tr>
+			<form name="SW_form">
+			<td><center><input type="checkbox" name="SW1" value="0" onclick="SwitchCheck()" /><br /><br /></center></td>
+			<td width="75"></td>
+			<td><center><input type="checkbox" name="SW2" value="0" onclick="SwitchCheck()" /><br /><br /></center></td>
+			<td width="75"></td>
+			<td><center><input type="checkbox" name="SW3" value="0" onclick="SwitchCheck()" /><br /><br /></center></td>
+			<td width="75"></td>
+			<td><center><input type="checkbox" name="SW4" value="0" onclick="SwitchCheck()" /><br /><br /></center></td>
+            </form>
+			</tr>
+            <tr><td><H1>Switch 1</H1><td width=75></td><td><H1>Switch 2</H1></td><td width=75></td><td><H1>Switch 3</H1></td><td width=75></td><td><H1>Switch 4</H1></td></tr>
+		</table>
+		<center><br><br><H1><a href="https://aiotconsulting.com/services/#iot" target="_blank">Click here for more information on this Project</a></H1></center>
+		<!-- update the gauges... -->
+		<script>
+			setInterval(function() {
+			document.getElementById("gauge_1").setAttribute("data-value", dataValOne);
+			document.getElementById("gauge_2").setAttribute("data-value", dataValTwo);
+            document.getElementById("gauge_3").setAttribute("data-value", dataValThree);
+            document.getElementById("gauge_4").setAttribute("data-value", dataValFour);
+			document.getElementById("gauge_5").setAttribute("data-value", dataValFive);
+			document.getElementById("gauge_6").setAttribute("data-value", dataValFive);
+			}, 1000);
+		 </script>
+    </body>
+    </div>
+</html>
